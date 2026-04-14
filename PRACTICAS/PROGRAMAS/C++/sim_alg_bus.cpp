@@ -76,7 +76,7 @@ int main(){
     int n;
 
     // --- Selección de tamaño ---
-    cout << "Selecciona tamaño:\n1) 10k\n2) 100k\n3) 500k\n> ";
+    cout << "Selecciona tamanio:\n1) 10k\n2) 100k\n3) 500k\n> ";
     cin >> opcionN;
 
     if (opcionN == 1) n = 10000;
