@@ -78,6 +78,19 @@
 
 <div id="canvas"></div>
 
+<h2>Tabla de Pedidos</h2>
+<table border="1" style="margin:auto; border-collapse: collapse;">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Producción</th>
+      <th>Entrega</th>
+      <th>Prioridad</th>
+    </tr>
+  </thead>
+  <tbody id="tablaBody"></tbody>
+</table>
+
 <script>
 class Pedido {
   constructor(produccion, entrega, prioridad) {
@@ -127,6 +140,28 @@ function dibujar(array, key, active = [], swap = []) {
   });
 }
 
+function dibujarTabla(array, active = [], swap = []) {
+  const tbody = document.getElementById("tablaBody");
+  tbody.innerHTML = "";
+
+  array.forEach((p, i) => {
+    const fila = document.createElement("tr");
+
+    if (active.includes(i)) fila.style.background = "#ffcccc";
+    if (swap.includes(i)) fila.style.background = "#fff3cd";
+
+    fila.innerHTML = `
+      <td>${i}</td>
+      <td>${p.tiempo_produccion}</td>
+      <td>${p.tiempo_entrega}</td>
+      <td>${p.prioridad}</td>
+    `;
+
+    tbody.appendChild(fila);
+  });
+}
+
+
 // Espera
 function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
@@ -140,7 +175,9 @@ async function bubbleSort(arr, key, asc = true) {
     let swapped = false;
 
     for (let j = 0; j < n - i - 1; j++) {
+
       dibujar(arr, key, [j, j+1]);
+      dibujarTabla(arr, [j, j+1]);
       await sleep(delay);
 
       let cond = asc 
@@ -152,11 +189,12 @@ async function bubbleSort(arr, key, asc = true) {
         swapped = true;
 
         dibujar(arr, key, [], [j, j+1]);
+        dibujarTabla(arr, [], [j, j+1]);
         await sleep(delay);
       }
     }
 
-    if (!swapped) break; // optimización
+    if (!swapped) break;
   }
 }
 
@@ -168,6 +206,8 @@ function iniciar() {
   const orden = document.getElementById("orden").value;
 
   dibujar(pedidos, criterio);
+  dibujarTabla(pedidos);
+
   bubbleSort(pedidos, criterio, orden === "asc");
 }
 
