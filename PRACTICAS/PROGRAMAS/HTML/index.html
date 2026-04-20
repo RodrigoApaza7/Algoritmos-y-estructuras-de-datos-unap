@@ -1,127 +1,185 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Práctica Bubble Sort - Pedidos</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background: #f4f6f9;
-    }
-    h1 {
-      color: #333;
-    }
-    #controls {
-      margin: 20px;
-    }
-    select, button {
-      padding: 8px;
-      margin: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    #canvas {
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      height: 300px;
-      margin: 30px auto;
-      border: 2px solid #ccc;
-      background: white;
-      width: 80%;
-    }
-    .bar {
-      margin: 0 5px;
-      background: #4CAF50;
-      color: white;
-      font-size: 12px;
-      text-align: center;
-      border-radius: 4px 4px 0 0;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Bubble Sort Visual</title>
+
+<style>
+  body {
+    font-family: Arial;
+    text-align: center;
+    background: #f4f6f9;
+  }
+
+  h1 { color: #333; }
+
+  #controls {
+    margin: 20px;
+  }
+
+  select, button {
+    padding: 8px;
+    margin: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
+
+  #canvas {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    height: 320px;
+    margin: 30px auto;
+    border: 2px solid #ccc;
+    background: white;
+    width: 80%;
+  }
+
+  .bar {
+    margin: 0 4px;
+    background: #4CAF50;
+    color: white;
+    font-size: 12px;
+    text-align: center;
+    border-radius: 4px 4px 0 0;
+    transition: all 0.3s ease;
+  }
+
+  .active {
+    background: #e74c3c !important;
+  }
+
+  .swap {
+    background: #f1c40f !important;
+  }
+</style>
 </head>
+
 <body>
-  <h1>Visualización de Bubble Sort - Pedidos</h1>
-  <div id="controls">
-    <label>Ordenar por: </label>
-    <select id="criterio">
-      <option value="tiempo_produccion">Tiempo Producción</option>
-      <option value="tiempo_entrega">Tiempo Entrega</option>
-      <option value="prioridad">Prioridad</option>
-    </select>
-    <label>Orden: </label>
-    <select id="orden">
-      <option value="asc">Ascendente</option>
-      <option value="desc">Descendente</option>
-    </select>
-    <button onclick="iniciar()">Iniciar Ordenamiento</button>
-  </div>
-  <div id="canvas"></div>
 
-  <script>
-    // Clase Pedido
-    class Pedido {
-      constructor(produccion, entrega, prioridad) {
-        this.tiempo_produccion = produccion;
-        this.tiempo_entrega = entrega;
-        this.prioridad = prioridad;
+<h1>Bubble Sort - Visualización</h1>
+
+<div id="controls">
+  <select id="criterio">
+    <option value="tiempo_produccion">Producción</option>
+    <option value="tiempo_entrega">Entrega</option>
+    <option value="prioridad">Prioridad</option>
+  </select>
+
+  <select id="orden">
+    <option value="asc">Ascendente</option>
+    <option value="desc">Descendente</option>
+  </select>
+
+  <button onclick="iniciar()">Iniciar</button>
+  <button onclick="reiniciar()">Reiniciar</button>
+</div>
+
+<div id="canvas"></div>
+
+<script>
+class Pedido {
+  constructor(produccion, entrega, prioridad) {
+    this.tiempo_produccion = produccion;
+    this.tiempo_entrega = entrega;
+    this.prioridad = prioridad;
+  }
+}
+
+let pedidos = [];
+let delay = 300;
+
+// Generar datos
+function generarPedidos(n = 10) {
+  pedidos = [];
+  for (let i = 0; i < n; i++) {
+    pedidos.push(new Pedido(
+      rand(20, 250),
+      rand(30, 400),
+      rand(1, 5)
+    ));
+  }
+}
+
+function rand(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
+// Dibujar
+function dibujar(array, key, active = [], swap = []) {
+  const canvas = document.getElementById("canvas");
+  canvas.innerHTML = "";
+
+  array.forEach((p, i) => {
+    const bar = document.createElement("div");
+    const val = p[key];
+
+    bar.className = "bar";
+    bar.style.height = val + "px";
+    bar.style.width = "35px";
+    bar.textContent = val;
+
+    if (active.includes(i)) bar.classList.add("active");
+    if (swap.includes(i)) bar.classList.add("swap");
+
+    canvas.appendChild(bar);
+  });
+}
+
+// Espera
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
+
+// Bubble Sort mejorado (con animación visual)
+async function bubbleSort(arr, key, asc = true) {
+  let n = arr.length;
+
+  for (let i = 0; i < n; i++) {
+    let swapped = false;
+
+    for (let j = 0; j < n - i - 1; j++) {
+      dibujar(arr, key, [j, j+1]);
+      await sleep(delay);
+
+      let cond = asc 
+        ? arr[j][key] > arr[j+1][key]
+        : arr[j][key] < arr[j+1][key];
+
+      if (cond) {
+        [arr[j], arr[j+1]] = [arr[j+1], arr[j]];
+        swapped = true;
+
+        dibujar(arr, key, [], [j, j+1]);
+        await sleep(delay);
       }
     }
 
-    // Generar datos de ejemplo
-    let pedidos = [];
-    function generarPedidos(num=8) {
-      pedidos = [];
-      for (let i=0; i<num; i++) {
-        pedidos.push(new Pedido(
-          Math.floor(Math.random() * 200) + 10,
-          Math.floor(Math.random() * 400) + 30,
-          Math.floor(Math.random() * 5) + 1
-        ));
-      }
-    }
+    if (!swapped) break; // optimización
+  }
+}
 
-    // Dibujar pedidos en canvas
-    function dibujar(pedidos, key) {
-      const canvas = document.getElementById("canvas");
-      canvas.innerHTML = "";
-      pedidos.forEach(p => {
-        const bar = document.createElement("div");
-        const valor = p[key];
-        bar.className = "bar";
-        bar.style.height = valor + "px";
-        bar.style.width = "40px";
-        bar.textContent = valor;
-        canvas.appendChild(bar);
-      });
-    }
+// Iniciar
+function iniciar() {
+  generarPedidos();
 
-    // Bubble Sort con animación
-    async function bubbleSort(pedidos, key, asc=true) {
-      let n = pedidos.length;
-      for (let i = 0; i < n; i++) {
-        for (let j = 0; j < n-i-1; j++) {
-          let cond = asc 
-            ? pedidos[j][key] > pedidos[j+1][key] 
-            : pedidos[j][key] < pedidos[j+1][key];
-          if (cond) {
-            [pedidos[j], pedidos[j+1]] = [pedidos[j+1], pedidos[j]];
-            dibujar(pedidos, key);
-            await new Promise(r => setTimeout(r, 500)); // pausa
-          }
-        }
-      }
-    }
+  const criterio = document.getElementById("criterio").value;
+  const orden = document.getElementById("orden").value;
 
-    // Iniciar proceso
-    function iniciar() {
-      generarPedidos();
-      const criterio = document.getElementById("criterio").value;
-      const orden = document.getElementById("orden").value;
-      dibujar(pedidos, criterio);
-      bubbleSort(pedidos, criterio, orden==="asc");
-    }
-  </script>
+  dibujar(pedidos, criterio);
+  bubbleSort(pedidos, criterio, orden === "asc");
+}
+
+// Reiniciar
+function reiniciar() {
+  iniciar();
+}
+
+// Inicial automático
+generarPedidos();
+dibujar(pedidos, "tiempo_produccion");
+</script>
+
 </body>
 </html>
