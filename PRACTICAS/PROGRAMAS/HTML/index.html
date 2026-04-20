@@ -120,25 +120,6 @@ function rand(min, max) {
 }
 
 // Dibujar
-function dibujar(array, key, active = [], swap = []) {
-  const canvas = document.getElementById("canvas");
-  canvas.innerHTML = "";
-
-  array.forEach((p, i) => {
-    const bar = document.createElement("div");
-    const val = p[key];
-
-    bar.className = "bar";
-    bar.style.height = val + "px";
-    bar.style.width = "35px";
-    bar.textContent = val;
-
-    if (active.includes(i)) bar.classList.add("active");
-    if (swap.includes(i)) bar.classList.add("swap");
-
-    canvas.appendChild(bar);
-  });
-}
 
 function dibujarTabla(array, active = [], swap = []) {
   const tbody = document.getElementById("tablaBody");
@@ -158,6 +139,26 @@ function dibujarTabla(array, active = [], swap = []) {
     `;
 
     tbody.appendChild(fila);
+  });
+}
+
+function dibujar(array, key, active = [], swap = []) {
+  const canvas = document.getElementById("canvas");
+  canvas.innerHTML = "";
+
+  array.forEach((p, i) => {
+    const bar = document.createElement("div");
+    const val = p[key];
+
+    bar.className = "bar";
+    bar.style.height = val + "px";
+    bar.style.width = "35px";
+    bar.textContent = val;
+
+    if (active.includes(i)) bar.classList.add("active");
+    if (swap.includes(i)) bar.classList.add("swap");
+
+    canvas.appendChild(bar);
   });
 }
 
