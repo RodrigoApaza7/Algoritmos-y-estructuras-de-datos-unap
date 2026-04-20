@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Práctica Bubble Sort - Pedidos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f4f6f9;
+    }
+    h1 {
+      color: #333;
+    }
+    #controls {
+      margin: 20px;
+    }
+    select, button {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    #canvas {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      height: 300px;
+      margin: 30px auto;
+      border: 2px solid #ccc;
+      background: white;
+      width: 80%;
+    }
+    .bar {
+      margin: 0 5px;
+      background: #4CAF50;
+      color: white;
+      font-size: 12px;
+      text-align: center;
+      border-radius: 4px 4px 0 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Visualización de Bubble Sort - Pedidos</h1>
+  <div id="controls">
+    <label>Ordenar por: </label>
+    <select id="criterio">
+      <option value="tiempo_produccion">Tiempo Producción</option>
+      <option value="tiempo_entrega">Tiempo Entrega</option>
+      <option value="prioridad">Prioridad</option>
+    </select>
+    <label>Orden: </label>
+    <select id="orden">
+      <option value="asc">Ascendente</option>
+      <option value="desc">Descendente</option>
+    </select>
+    <button onclick="iniciar()">Iniciar Ordenamiento</button>
+  </div>
+  <div id="canvas"></div>
+
+  <script>
+    // Clase Pedido
+    class Pedido {
+      constructor(produccion, entrega, prioridad) {
+        this.tiempo_produccion = produccion;
+        this.tiempo_entrega = entrega;
+        this.prioridad = prioridad;
+      }
+    }
+
+    // Generar datos de ejemplo
+    let pedidos = [];
+    function generarPedidos(num=8) {
+      pedidos = [];
+      for (let i=0; i<num; i++) {
+        pedidos.push(new Pedido(
+          Math.floor(Math.random() * 200) + 10,
+          Math.floor(Math.random() * 400) + 30,
+          Math.floor(Math.random() * 5) + 1
+        ));
+      }
+    }
+
+    // Dibujar pedidos en canvas
+    function dibujar(pedidos, key) {
+      const canvas = document.getElementById("canvas");
+      canvas.innerHTML = "";
+      pedidos.forEach(p => {
+        const bar = document.createElement("div");
+        const valor = p[key];
+        bar.className = "bar";
+        bar.style.height = valor + "px";
+        bar.style.width = "40px";
+        bar.textContent = valor;
+        canvas.appendChild(bar);
+      });
+    }
+
+    // Bubble Sort con animación
+    async function bubbleSort(pedidos, key, asc=true) {
+      let n = pedidos.length;
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n-i-1; j++) {
+          let cond = asc 
+            ? pedidos[j][key] > pedidos[j+1][key] 
+            : pedidos[j][key] < pedidos[j+1][key];
+          if (cond) {
+            [pedidos[j], pedidos[j+1]] = [pedidos[j+1], pedidos[j]];
+            dibujar(pedidos, key);
+            await new Promise(r => setTimeout(r, 500)); // pausa
+          }
+        }
+      }
+    }
+
+    // Iniciar proceso
+    function iniciar() {
+      generarPedidos();
+      const criterio = document.getElementById("criterio").value;
+      const orden = document.getElementById("orden").value;
+      dibujar(pedidos, criterio);
+      bubbleSort(pedidos, criterio, orden==="asc");
+    }
+  </script>
+</body>
+</html>
