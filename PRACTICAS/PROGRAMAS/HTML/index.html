@@ -2,11 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Bubble Sort Visual</title>
+<title>Bubble Sort Visual - Mejorado</title>
 
 <style>
   body {
-    font-family: Arial;
+    font-family: Arial, sans-serif;
     text-align: center;
     background: #f4f6f9;
   }
@@ -15,14 +15,27 @@
 
   #controls {
     margin: 20px;
+    padding: 15px;
+    background: #fff;
+    display: inline-block;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   }
 
-  select, button {
+  select, button, input {
     padding: 8px;
     margin: 5px;
     border-radius: 5px;
     border: 1px solid #ccc;
     cursor: pointer;
+  }
+
+  /* MEJORA: Estilo para el control de velocidad */
+  .speed-control {
+    display: block;
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #555;
   }
 
   #canvas {
@@ -40,49 +53,50 @@
     margin: 0 4px;
     background: #4CAF50;
     color: white;
-    font-size: 12px;
+    font-size: 11px;
     text-align: center;
     border-radius: 4px 4px 0 0;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
   }
 
-  .active {
-    background: #e74c3c !important;
-  }
-
-  .swap {
-    background: #f1c40f !important;
-  }
+  .active { background: #e74c3c !important; } /* Rojo: Comparando */
+  .swap { background: #f1c40f !important; }   /* Amarillo: Intercambiando */
 </style>
 </head>
 
 <body>
 
-<h1>Bubble Sort - Visualización</h1>
+<h1>Bubble Sort - Visualización de Pedidos</h1>
 
 <div id="controls">
+  <label>Criterio:</label>
   <select id="criterio">
     <option value="tiempo_produccion">Producción</option>
     <option value="tiempo_entrega">Entrega</option>
     <option value="prioridad">Prioridad</option>
   </select>
 
+  <label>Orden:</label>
   <select id="orden">
     <option value="asc">Ascendente</option>
     <option value="desc">Descendente</option>
   </select>
 
-  <button onclick="iniciar()">Iniciar</button>
-  <button onclick="reiniciar()">Reiniciar</button>
+  <button onclick="iniciar()">Iniciar Ordenamiento</button>
+  <button onclick="generarNuevaLista()">Nuevos Datos</button>
+
+  <div class="speed-control">
+    Velocidad: Lento <input type="range" id="velocidad" min="50" max="1000" value="300" step="50"> Rápido
+  </div>
 </div>
 
 <div id="canvas"></div>
 
-<h2>Tabla de Pedidos</h2>
-<table border="1" style="margin:auto; border-collapse: collapse;">
+<h2>Tabla de Datos</h2>
+<table border="1" style="margin:auto; border-collapse: collapse; width: 60%; background: white;">
   <thead>
-    <tr>
-      <th>#</th>
+    <tr style="background: #eee;">
+      <th>Índice</th>
       <th>Producción</th>
       <th>Entrega</th>
       <th>Prioridad</th>
@@ -101,25 +115,23 @@ class Pedido {
 }
 
 let pedidos = [];
-let delay = 300;
-
-// Generar datos
-function generarPedidos(n = 10) {
-  pedidos = [];
-  for (let i = 0; i < n; i++) {
-    pedidos.push(new Pedido(
-      rand(20, 250),
-      rand(30, 400),
-      rand(1, 5)
-    ));
-  }
-}
 
 function rand(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
 
-// Dibujar
+function generarPedidos(n = 10) {
+  pedidos = [];
+  for (let i = 0; i < n; i++) {
+    pedidos.push(new Pedido(rand(20, 250), rand(30, 400), rand(1, 6)));
+  }
+}
+
+// <--- MEJORA: Sincronización inicial de la tabla
+function dibujarTodo(array, key, active = [], swap = []) {
+  dibujarGrafico(array, key, active, swap);
+  dibujarTabla(array, active, swap);
+}
 
 function dibujarTabla(array, active = [], swap = []) {
   const tbody = document.getElementById("tablaBody");
@@ -127,7 +139,6 @@ function dibujarTabla(array, active = [], swap = []) {
 
   array.forEach((p, i) => {
     const fila = document.createElement("tr");
-
     if (active.includes(i)) fila.style.background = "#ffcccc";
     if (swap.includes(i)) fila.style.background = "#fff3cd";
 
@@ -137,12 +148,11 @@ function dibujarTabla(array, active = [], swap = []) {
       <td>${p.tiempo_entrega}</td>
       <td>${p.prioridad}</td>
     `;
-
     tbody.appendChild(fila);
   });
 }
 
-function dibujar(array, key, active = [], swap = []) {
+function dibujarGrafico(array, key, active = [], swap = []) {
   const canvas = document.getElementById("canvas");
   canvas.innerHTML = "";
 
@@ -150,10 +160,13 @@ function dibujar(array, key, active = [], swap = []) {
     const bar = document.createElement("div");
     const val = p[key];
 
+    // <--- MEJORA: Escalado visual para la Prioridad (valores 1-5)
+    let alturaVisual = (key === 'prioridad') ? val * 50 : val;
+
     bar.className = "bar";
-    bar.style.height = val + "px";
+    bar.style.height = alturaVisual + "px";
     bar.style.width = "35px";
-    bar.textContent = val;
+    bar.textContent = val; // Muestra el valor real sobre la barra
 
     if (active.includes(i)) bar.classList.add("active");
     if (swap.includes(i)) bar.classList.add("swap");
@@ -162,65 +175,49 @@ function dibujar(array, key, active = [], swap = []) {
   });
 }
 
-
-// Espera
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
-
-// Bubble Sort mejorado (con animación visual)
 async function bubbleSort(arr, key, asc = true) {
   let n = arr.length;
 
   for (let i = 0; i < n; i++) {
     let swapped = false;
-
     for (let j = 0; j < n - i - 1; j++) {
+      
+      // <--- MEJORA: Uso de la velocidad dinámica del slider
+      let delay = 1050 - document.getElementById("velocidad").value;
 
-      dibujar(arr, key, [j, j+1]);
-      dibujarTabla(arr, [j, j+1]);
-      await sleep(delay);
+      dibujarTodo(arr, key, [j, j+1]);
+      await new Promise(r => setTimeout(r, delay));
 
-      let cond = asc 
-        ? arr[j][key] > arr[j+1][key]
-        : arr[j][key] < arr[j+1][key];
+      let cond = asc ? arr[j][key] > arr[j+1][key] : arr[j][key] < arr[j+1][key];
 
       if (cond) {
         [arr[j], arr[j+1]] = [arr[j+1], arr[j]];
         swapped = true;
-
-        dibujar(arr, key, [], [j, j+1]);
-        dibujarTabla(arr, [], [j, j+1]);
-        await sleep(delay);
+        dibujarTodo(arr, key, [], [j, j+1]);
+        await new Promise(r => setTimeout(r, delay));
       }
     }
-
     if (!swapped) break;
   }
+  dibujarTodo(arr, key); // Dibujo final limpio
 }
 
-// Iniciar
 function iniciar() {
-  generarPedidos();
-
   const criterio = document.getElementById("criterio").value;
   const orden = document.getElementById("orden").value;
-
-  dibujar(pedidos, criterio);
-  dibujarTabla(pedidos);
-
   bubbleSort(pedidos, criterio, orden === "asc");
 }
 
-// Reiniciar
-function reiniciar() {
-  iniciar();
+function generarNuevaLista() {
+  generarPedidos();
+  const criterio = document.getElementById("criterio").value;
+  dibujarTodo(pedidos, criterio);
 }
 
-// Inicial automático
+// <--- MEJORA: Carga inicial completa al abrir la página
 generarPedidos();
-dibujar(pedidos, "tiempo_produccion");
-</script>
+dibujarTodo(pedidos, "tiempo_produccion");
 
+</script>
 </body>
 </html>
