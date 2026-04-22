@@ -125,6 +125,12 @@ class Pedido {
 
 let pedidos = [];
 
+// --- FUNCIÓN AGREGADA PARA CORREGIR EL ERROR ---
+function getDelay() {
+  // Retorna el tiempo en milisegundos basado en el slider de velocidad
+  return 1050 - document.getElementById("velocidad").value;
+}
+
 function rand(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
@@ -136,7 +142,6 @@ function generarPedidos(n = 10) {
   }
 }
 
-// <--- MEJORA: Sincronización inicial de la tabla
 function dibujarTodo(array, key, active = [], swap = []) {
   dibujarGrafico(array, key, active, swap);
   dibujarTabla(array, active, swap);
@@ -145,12 +150,10 @@ function dibujarTodo(array, key, active = [], swap = []) {
 function dibujarTabla(array, active = [], swap = []) {
   const tbody = document.getElementById("tablaBody");
   tbody.innerHTML = "";
-
   array.forEach((p, i) => {
     const fila = document.createElement("tr");
     if (active.includes(i)) fila.style.background = "#ffcccc";
     if (swap.includes(i)) fila.style.background = "#fff3cd";
-
     fila.innerHTML = `
       <td>${i}</td>
       <td>${p.tiempo_produccion}</td>
@@ -164,72 +167,60 @@ function dibujarTabla(array, active = [], swap = []) {
 function dibujarGrafico(array, key, active = [], swap = []) {
   const canvas = document.getElementById("canvas");
   canvas.innerHTML = "";
-
   array.forEach((p, i) => {
     const bar = document.createElement("div");
     const val = p[key];
-
-    // <--- MEJORA: Escalado visual para la Prioridad (valores 1-5)
     let alturaVisual = (key === 'prioridad') ? val * 50 : val;
-
     bar.className = "bar";
     bar.style.height = alturaVisual + "px";
     bar.style.width = "35px";
-    bar.textContent = val; // Muestra el valor real sobre la barra
-
+    bar.textContent = val;
     if (active.includes(i)) bar.classList.add("active");
     if (swap.includes(i)) bar.classList.add("swap");
-
     canvas.appendChild(bar);
   });
 }
 
+// 1. Bubble Sort
 async function bubbleSort(arr, key, asc = true) {
   let n = arr.length;
-
   for (let i = 0; i < n; i++) {
     let swapped = false;
     for (let j = 0; j < n - i - 1; j++) {
-      
-      // <--- MEJORA: Uso de la velocidad dinámica del slider
-      let delay = 1050 - document.getElementById("velocidad").value;
-
       dibujarTodo(arr, key, [j, j+1]);
-      await new Promise(r => setTimeout(r, delay));
-
+      await new Promise(r => setTimeout(r, getDelay()));
       let cond = asc ? arr[j][key] > arr[j+1][key] : arr[j][key] < arr[j+1][key];
-
       if (cond) {
         [arr[j], arr[j+1]] = [arr[j+1], arr[j]];
         swapped = true;
         dibujarTodo(arr, key, [], [j, j+1]);
-        await new Promise(r => setTimeout(r, delay));
+        await new Promise(r => setTimeout(r, getDelay()));
       }
     }
     if (!swapped) break;
   }
-  dibujarTodo(arr, key); // Dibujo final limpio
 }
 
+// 2. Selection Sort
 async function selectionSort(arr, key, asc) {
     let n = arr.length;
     for (let i = 0; i < n - 1; i++) {
         let minIdx = i;
         for (let j = i + 1; j < n; j++) {
-            dibujarTodo(arr, key, [j, minIdx]); // Visualiza comparación
+            dibujarTodo(arr, key, [j, minIdx]);
             await new Promise(r => setTimeout(r, getDelay()));
             let cond = asc ? arr[j][key] < arr[minIdx][key] : arr[j][key] > arr[minIdx][key];
             if (cond) minIdx = j;
         }
         if (minIdx !== i) {
             [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
-            dibujarTodo(arr, key, [], [i, minIdx]); // Visualiza intercambio
+            dibujarTodo(arr, key, [], [i, minIdx]);
             await new Promise(r => setTimeout(r, getDelay()));
         }
     }
 }
 
-// 3. Insertion Sort (NUEVO)
+// 3. Insertion Sort
 async function insertionSort(arr, key, asc) {
     let n = arr.length;
     for (let i = 1; i < n; i++) {
@@ -243,9 +234,7 @@ async function insertionSort(arr, key, asc) {
                 arr[j + 1] = arr[j];
                 j--;
                 dibujarTodo(arr, key, [], [j + 1]);
-            } else {
-                break;
-            }
+            } else { break; }
         }
         arr[j + 1] = actual;
         dibujarTodo(arr, key, [], [j + 1]);
@@ -253,7 +242,7 @@ async function insertionSort(arr, key, asc) {
     }
 }
 
-// 4. Shell Sort (NUEVO)
+// 4. Shell Sort
 async function shellSort(arr, key, asc) {
     let n = arr.length;
     for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
@@ -268,9 +257,7 @@ async function shellSort(arr, key, asc) {
                     arr[j] = arr[j - gap];
                     j -= gap;
                     dibujarTodo(arr, key, [], [j]);
-                } else {
-                    break;
-                }
+                } else { break; }
             }
             arr[j] = temp;
             dibujarTodo(arr, key, [], [j]);
@@ -279,21 +266,20 @@ async function shellSort(arr, key, asc) {
 }
 
 async function iniciar() {
-    const metodo = document.getElementById("metodo").value;
-    const criterio = document.getElementById("criterio").value;
-    const orden = document.getElementById("orden").value;
-    const esAsc = (orden === "asc");
+  const metodo = document.getElementById("metodo").value;
+  const criterio = document.getElementById("criterio").value;
+  const orden = document.getElementById("orden").value;
+  const esAsc = (orden === "asc");
 
-    // Deshabilitar botones durante la animación
-    document.querySelectorAll("button").forEach(b => b.disabled = true);
+  document.querySelectorAll("button").forEach(b => b.disabled = true);
 
-    if (metodo === "bubble_sort") await bubbleSort(pedidos, criterio, esAsc);
-    if (metodo === "selection_sort") await selectionSort(pedidos, criterio, esAsc);
-    if (metodo === "insertion_sort") await insertionSort(pedidos, criterio, esAsc);
-    if (metodo === "shell_sort") await shellSort(pedidos, criterio, esAsc);
+  if (metodo === "bubble_sort") await bubbleSort(pedidos, criterio, esAsc);
+  else if (metodo === "selection_sort") await selectionSort(pedidos, criterio, esAsc);
+  else if (metodo === "insertion_sort") await insertionSort(pedidos, criterio, esAsc);
+  else if (metodo === "shell_sort") await shellSort(pedidos, criterio, esAsc);
 
-    document.querySelectorAll("button").forEach(b => b.disabled = false);
-    dibujarTodo(pedidos, criterio);
+  document.querySelectorAll("button").forEach(b => b.disabled = false);
+  dibujarTodo(pedidos, criterio);
 }
 
 function generarNuevaLista() {
@@ -302,10 +288,8 @@ function generarNuevaLista() {
   dibujarTodo(pedidos, criterio);
 }
 
-// <--- MEJORA: Carga inicial completa al abrir la página
 generarPedidos();
 dibujarTodo(pedidos, "tiempo_produccion");
-
 </script>
 </body>
 </html>
