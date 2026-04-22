@@ -211,10 +211,89 @@ async function bubbleSort(arr, key, asc = true) {
   dibujarTodo(arr, key); // Dibujo final limpio
 }
 
-function iniciar() {
-  const criterio = document.getElementById("criterio").value;
-  const orden = document.getElementById("orden").value;
-  bubbleSort(pedidos, criterio, orden === "asc");
+async function selectionSort(arr, key, asc) {
+    let n = arr.length;
+    for (let i = 0; i < n - 1; i++) {
+        let minIdx = i;
+        for (let j = i + 1; j < n; j++) {
+            dibujarTodo(arr, key, [j, minIdx]); // Visualiza comparación
+            await new Promise(r => setTimeout(r, getDelay()));
+            let cond = asc ? arr[j][key] < arr[minIdx][key] : arr[j][key] > arr[minIdx][key];
+            if (cond) minIdx = j;
+        }
+        if (minIdx !== i) {
+            [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];
+            dibujarTodo(arr, key, [], [i, minIdx]); // Visualiza intercambio
+            await new Promise(r => setTimeout(r, getDelay()));
+        }
+    }
+}
+
+// 3. Insertion Sort (NUEVO)
+async function insertionSort(arr, key, asc) {
+    let n = arr.length;
+    for (let i = 1; i < n; i++) {
+        let actual = arr[i];
+        let j = i - 1;
+        while (j >= 0) {
+            dibujarTodo(arr, key, [j, j + 1]);
+            await new Promise(r => setTimeout(r, getDelay()));
+            let cond = asc ? arr[j][key] > actual[key] : arr[j][key] < actual[key];
+            if (cond) {
+                arr[j + 1] = arr[j];
+                j--;
+                dibujarTodo(arr, key, [], [j + 1]);
+            } else {
+                break;
+            }
+        }
+        arr[j + 1] = actual;
+        dibujarTodo(arr, key, [], [j + 1]);
+        await new Promise(r => setTimeout(r, getDelay()));
+    }
+}
+
+// 4. Shell Sort (NUEVO)
+async function shellSort(arr, key, asc) {
+    let n = arr.length;
+    for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+        for (let i = gap; i < n; i++) {
+            let temp = arr[i];
+            let j = i;
+            while (j >= gap) {
+                dibujarTodo(arr, key, [j, j - gap]);
+                await new Promise(r => setTimeout(r, getDelay()));
+                let cond = asc ? arr[j - gap][key] > temp[key] : arr[j - gap][key] < temp[key];
+                if (cond) {
+                    arr[j] = arr[j - gap];
+                    j -= gap;
+                    dibujarTodo(arr, key, [], [j]);
+                } else {
+                    break;
+                }
+            }
+            arr[j] = temp;
+            dibujarTodo(arr, key, [], [j]);
+        }
+    }
+}
+
+async function iniciar() {
+    const metodo = document.getElementById("metodo").value;
+    const criterio = document.getElementById("criterio").value;
+    const orden = document.getElementById("orden").value;
+    const esAsc = (orden === "asc");
+
+    // Deshabilitar botones durante la animación
+    document.querySelectorAll("button").forEach(b => b.disabled = true);
+
+    if (metodo === "bubble_sort") await bubbleSort(pedidos, criterio, esAsc);
+    if (metodo === "selection_sort") await selectionSort(pedidos, criterio, esAsc);
+    if (metodo === "insertion_sort") await insertionSort(pedidos, criterio, esAsc);
+    if (metodo === "shell_sort") await shellSort(pedidos, criterio, esAsc);
+
+    document.querySelectorAll("button").forEach(b => b.disabled = false);
+    dibujarTodo(pedidos, criterio);
 }
 
 function generarNuevaLista() {
