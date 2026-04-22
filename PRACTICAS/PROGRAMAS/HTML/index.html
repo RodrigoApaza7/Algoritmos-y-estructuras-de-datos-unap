@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Bubble Sort Visual - Mejorado</title>
+<title>Ordenamiento por filtro</title>
 
 <style>
   body {
@@ -69,6 +69,15 @@
 <h1>Bubble Sort - Visualización de Pedidos</h1>
 
 <div id="controls">
+
+  <label>Metodo:</label>
+  <select id="metodo">
+    <option value="bubble_sort">Buble</option>
+    <option value="selection_sort">Selección</option>
+    <option value="insertion_sort">Inserción</option>
+    <option value="shell_sort">Shell</option>
+  </select>
+
   <label>Criterio:</label>
   <select id="criterio">
     <option value="tiempo_produccion">Producción</option>
