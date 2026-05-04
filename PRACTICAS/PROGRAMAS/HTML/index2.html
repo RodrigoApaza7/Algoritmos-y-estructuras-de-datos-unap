@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>ALGORITMOS DE ORDENAMIENTO</title>
+
+<style>
+body {
+  font-family: Arial;
+  text-align: center;
+  background: linear-gradient(135deg, #020617, #0f172a);
+  color: white;
+}
+
+#controls { margin: 15px; }
+
+select, button, input {
+  padding: 8px;
+  margin: 5px;
+  border-radius: 6px;
+  border: none;
+}
+
+#canvas {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 350px;
+  width: 95%;
+  margin: auto;
+  background: #020617;
+  border: 2px solid #334155;
+}
+
+.bar {
+  margin: 0 1px;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 11px;
+  color: white;
+}
+
+.comparing { background: #f59e0b !important; }
+.swapping { background: #ef4444 !important; }
+.sorted { background: #3b82f6 !important; }
+
+table {
+  border-collapse: collapse;
+  margin-top: 15px;
+  margin-left: auto;
+  margin-right: auto;
+  background: white;
+  color: black;
+}
+
+th, td {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+}
+
+th {
+  background: #1e293b;
+  color: white;
+}
+
+.compare-row { background: #f59e0b !important; color: white; }
+.swap-row { background: #ef4444 !important; color: white; }
+.sorted-row { background: #3b82f6 !important; color: white; }
+
+tr { transition: all 0.2s ease; }
+
+#estado {
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.running { color: #22c55e; }
+.paused { color: #f59e0b; }
+.stopped { color: #ef4444; }
+
+#stats { margin-top: 10px; }
+</style>
+</head>
+
+<body>
+
+<h1>🚀 ALGORITMOS DE ORDENAMIENTO</h1>
+
+<div id="controls">
+
+<select id="algoritmo">
+  <option value="bubble">Bubble</option>
+  <option value="selection">Selection</option>
+  <option value="insertion">Insertion</option>
+  <option value="shell">Shell</option>
+</select>
+
+<select id="criterio">
+  <option value="tiempo_produccion">Producción</option>
+  <option value="tiempo_entrega">Entrega</option>
+  <option value="prioridad">Prioridad</option>
+</select>
+
+<select id="orden">
+  <option value="asc">Ascendente</option>
+  <option value="desc">Descendente</option>
+</select>
+
+<br>
+
+Tamaño:
+<input type="range" id="size" min="5" max="80" value="20">
+<span id="sizeVal">20</span>
+
+Velicidad:
+<input type="range" id="speed" min="10" max="400" value="120">
+
+<br>
+
+<select id="tipo">
+  <option value="random">Aleatorio</option>
+  <option value="sorted">Ordenado</option>
+  <option value="reverse">Reverso</option>
+  <option value="almost">Casi ordenado</option>
+</select>
+
+<button onclick="generarPedidosUI()">🎲 Generar</button>
+
+<br>
+
+<button onclick="iniciar()">▶ Iniciar</button>
+<button onclick="pausar()">⏸</button>
+<button onclick="continuar()">⏵</button>
+<button onclick="detener()">⛔ STOP</button>
+<button onclick="reiniciar()">🔄</button>
+
+</div>
+
+<h2 id="estado" class="stopped">🔴 STOPPED</h2>
+
+<div id="stats">
+Comparaciones: <span id="comp">0</span> |
+Intercambios: <span id="swap">0</span>
+</div>
+
+<div id="canvas"></div>
+
+<h3>📋 Tabla de Pedidos</h3>
+<table id="tabla">
+<thead>
+<tr>
+<th>#</th>
+<th>Producción</th>
+<th>Entrega</th>
+<th>Prioridad</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<script>
+class Pedido {
+  constructor(p,e,pr){
+    this.tiempo_produccion=p;
+    this.tiempo_entrega=e;
+    this.prioridad=pr;
+  }
+}
+
+let pedidos=[];
+let comparaciones=0;
+let intercambios=0;
+let pausado=false;
+let corriendo=false;
+let detenido=false;
+
+document.getElementById("size").oninput=function(){
+  document.getElementById("sizeVal").textContent=this.value;
+};
+
+// ================= ESTADO =================
+function actualizarEstado(tipo){
+  const e=document.getElementById("estado");
+  e.className="";
+
+  if(tipo==="running"){
+    e.textContent="🟢 RUNNING";
+    e.classList.add("running");
+  }
+  if(tipo==="paused"){
+    e.textContent="🟡 PAUSED";
+    e.classList.add("paused");
+  }
+  if(tipo==="stopped"){
+    e.textContent="🔴 STOPPED";
+    e.classList.add("stopped");
+  }
+}
+
+// ================= GENERACIÓN =================
+function generarPedidosUI(){
+  let n=document.getElementById("size").value;
+  let tipo=document.getElementById("tipo").value;
+
+  pedidos=[];
+
+  for(let i=0;i<n;i++){
+    pedidos.push(new Pedido(
+      Math.floor(Math.random()*200)+20,
+      Math.floor(Math.random()*400)+30,
+      Math.floor(Math.random()*5)+1
+    ));
+  }
+
+  dibujar(document.getElementById("criterio").value);
+}
+
+// ================= DIBUJO =================
+function dibujar(key,h={}){
+  const c=document.getElementById("canvas");
+  c.innerHTML="";
+
+  let max=Math.max(...pedidos.map(p=>p[key]));
+  let width=100/pedidos.length;
+
+  pedidos.forEach((p,i)=>{
+    const b=document.createElement("div");
+    let val=p[key];
+
+    b.className="bar";
+    b.style.height=(val/max*100)+"%";
+    b.style.width=width+"%";
+    b.style.background=`hsl(${val/max*200},80%,50%)`;
+    b.textContent=val;
+
+    if(h.compare?.includes(i)) b.classList.add("comparing");
+    if(h.swap?.includes(i)) b.classList.add("swapping");
+    if(h.sorted?.includes(i)) b.classList.add("sorted");
+
+    c.appendChild(b);
+  });
+
+  actualizarTabla(h);
+  document.getElementById("comp").textContent=comparaciones;
+  document.getElementById("swap").textContent=intercambios;
+}
+
+function actualizarTabla(h={}){
+  const tbody=document.querySelector("#tabla tbody");
+  tbody.innerHTML="";
+
+  pedidos.forEach((p,i)=>{
+    const row=document.createElement("tr");
+
+    row.innerHTML=`
+      <td>${i+1}</td>
+      <td>${p.tiempo_produccion}</td>
+      <td>${p.tiempo_entrega}</td>
+      <td>${p.prioridad}</td>
+    `;
+
+    if(h.compare?.includes(i)) row.classList.add("compare-row");
+    if(h.swap?.includes(i)) row.classList.add("swap-row");
+    if(h.sorted?.includes(i)) row.classList.add("sorted-row");
+
+    tbody.appendChild(row);
+  });
+}
+
+// ================= UTIL =================
+function sleep(){
+  let slider=document.getElementById("speed").value;
+  let delay=500-slider;
+
+  return new Promise(resolve=>{
+    let t=setTimeout(()=>resolve(),delay);
+    if(detenido){
+      clearTimeout(t);
+      resolve();
+    }
+  });
+}
+
+async function checkPause(){
+  while(pausado && !detenido){
+    await new Promise(r=>setTimeout(r,50));
+  }
+}
+
+function comparar(a,b,key,asc){
+  comparaciones++;
+  return asc ? a[key]>b[key] : a[key]<b[key];
+}
+
+// ================= ALGORITMOS =================
+async function bubble(key,asc){
+  let n=pedidos.length;
+  for(let i=0;i<n;i++){
+    if(detenido) return;
+    for(let j=0;j<n-i-1;j++){
+      if(detenido) return;
+
+      await checkPause();
+      dibujar(key,{compare:[j,j+1]});
+      await sleep();
+
+      if(comparar(pedidos[j],pedidos[j+1],key,asc)){
+        intercambios++;
+        [pedidos[j],pedidos[j+1]]=[pedidos[j+1],pedidos[j]];
+        dibujar(key,{swap:[j,j+1]});
+        await sleep();
+      }
+    }
+    dibujar(key,{sorted:[n-i-1]});
+  }
+}
+
+// ================= CONTROL =================
+async function iniciar(){
+  if(corriendo) return;
+
+  detenido=false;
+  pausado=false;
+  corriendo=true;
+  comparaciones=0;
+  intercambios=0;
+
+  actualizarEstado("running");
+
+  let key=document.getElementById("criterio").value;
+  let asc=document.getElementById("orden").value==="asc";
+
+  await bubble(key,asc);
+
+  corriendo=false;
+  actualizarEstado("stopped");
+}
+
+function pausar(){
+  pausado=true;
+  actualizarEstado("paused");
+}
+
+function continuar(){
+  pausado=false;
+  actualizarEstado("running");
+}
+
+function detener(){
+  detenido=true;
+  pausado=false;
+  corriendo=false;
+  actualizarEstado("stopped");
+}
+
+function reiniciar(){
+  detenido=false;
+  pausado=false;
+  corriendo=false;
+  comparaciones=0;
+  intercambios=0;
+
+  actualizarEstado("stopped");
+  generarPedidosUI();
+}
+
+// inicial
+generarPedidosUI();
+</script>
+
+</body>
+</html>
