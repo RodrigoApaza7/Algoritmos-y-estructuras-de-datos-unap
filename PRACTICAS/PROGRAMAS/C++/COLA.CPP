@@ -75,7 +75,11 @@ int main() {
     cola.enqueue(9);
     cola.enqueue(12);
 
+    cout << "Frente: " << cola.front() << endl;
+
     cola.dequeue();
+
+    cout << "Nuevo frente: " << cola.front() << endl;
 
     cola.mostrar();
 

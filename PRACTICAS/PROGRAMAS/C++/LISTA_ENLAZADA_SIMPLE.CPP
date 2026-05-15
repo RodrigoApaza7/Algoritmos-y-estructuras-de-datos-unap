@@ -7,17 +7,20 @@ struct Nodo {
     Nodo* siguiente;
 };
 
-class ListaEnlazada {
+class ListaEnlazada 
+{
 private:
     Nodo* cabeza;
 
 public:
-    ListaEnlazada() {
+    ListaEnlazada() 
+    {
         cabeza = nullptr;
     }
 
     // Insertar al inicio
-    void insertarInicio(int valor) {
+    void insertarInicio(int valor) 
+    {
         Nodo* nuevo = new Nodo();
 
         nuevo->dato = valor;
@@ -29,7 +32,8 @@ public:
     }
 
     // Insertar al final
-    void insertarFinal(int valor) {
+    void insertarFinal(int valor) 
+    {
 
         Nodo* nuevo = new Nodo();
 
@@ -37,15 +41,18 @@ public:
         nuevo->siguiente = nullptr;
 
         // Si la lista esta vacia
-        if (cabeza == nullptr) {
+        if (cabeza == nullptr) 
+        {
             cabeza = nuevo;
         }
-        else {
+        else 
+        {
 
             Nodo* auxiliar = cabeza;
 
             // Recorrer hasta el ultimo nodo
-            while (auxiliar->siguiente != nullptr) {
+            while (auxiliar->siguiente != nullptr) 
+            {
                 auxiliar = auxiliar->siguiente;
             }
 
@@ -56,9 +63,11 @@ public:
     }
 
     // Eliminar al inicio
-    void eliminarInicio() {
+    void eliminarInicio() 
+    {
 
-        if (cabeza == nullptr) {
+        if (cabeza == nullptr) 
+        {
             cout << "La lista esta vacia" << endl;
             return;
         }
@@ -73,9 +82,11 @@ public:
     }
 
     // Mostrar lista
-    void mostrar() {
+    void mostrar() 
+    {
 
-        if (cabeza == nullptr) {
+        if (cabeza == nullptr) 
+        {
             cout << "La lista esta vacia" << endl;
             return;
         }
@@ -84,11 +95,13 @@ public:
 
         cout << "\nContenido de la lista:\n";
 
-        while (auxiliar != nullptr) {
+        while (auxiliar != nullptr) 
+        {
 
             cout << "[" << auxiliar->dato << "]";
 
-            if (auxiliar->siguiente != nullptr) {
+            if (auxiliar->siguiente != nullptr) 
+            {
                 cout << " -> ";
             }
 
@@ -99,11 +112,13 @@ public:
     }
 
     // Liberar memoria
-    ~ListaEnlazada() {
+    ~ListaEnlazada() 
+    {
 
         Nodo* actual = cabeza;
 
-        while (actual != nullptr) {
+        while (actual != nullptr) 
+        {
 
             Nodo* siguiente = actual->siguiente;
 
@@ -114,7 +129,8 @@ public:
     }
 };
 
-int main() {
+int main() 
+{
 
     ListaEnlazada lista;
 
