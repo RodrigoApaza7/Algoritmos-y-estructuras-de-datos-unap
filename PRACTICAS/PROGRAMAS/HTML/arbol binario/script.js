@@ -587,3 +587,215 @@ function filtrarPPA(){
     );
 
 }
+
+//============================
+// FILTRO ESTADO
+//============================
+
+ArbolAcademico.prototype.porEstado=function(estado){
+
+    let lista=this.inOrder();
+
+    return lista.filter(e=>
+
+        e.estado==estado
+
+    );
+
+};
+
+function filtrarEstado(){
+
+    let estado=
+
+    document.getElementById(
+        "estadoFiltro"
+    ).value;
+
+    crearTabla(
+
+        arbol.porEstado(
+            estado
+        )
+
+    );
+
+}
+
+//============================
+// ESTADISTICAS
+//============================
+
+ArbolAcademico.prototype.estadisticas=function(){
+
+    let lista=this.inOrder();
+
+    let total=lista.length;
+
+    if(total==0){
+
+        return{
+
+            total:0,
+            media:0,
+            max:0,
+            min:0,
+            stdev:0
+
+        };
+
+    }
+
+    let suma=0;
+
+    let max=lista[0].ppa;
+
+    let min=lista[0].ppa;
+
+    lista.forEach(e=>{
+
+        suma+=e.ppa;
+
+        if(e.ppa>max)
+            max=e.ppa;
+
+        if(e.ppa<min)
+            min=e.ppa;
+
+    });
+
+    let media=suma/total;
+
+    let varianza=0;
+
+    lista.forEach(e=>{
+
+        varianza+=Math.pow(
+            e.ppa-media,
+            2
+        );
+
+    });
+
+    let stdev=0;
+
+    if(total>1){
+
+        stdev=Math.sqrt(
+
+            varianza/(total-1)
+
+        );
+
+    }
+
+    return{
+
+        total,
+        media,
+        max,
+        min,
+        stdev
+
+    };
+
+};
+
+function mostrarEstadisticas(){
+
+    let e=
+
+    arbol.estadisticas();
+
+    let html="";
+
+    html+="<div class='tarjeta'>";
+    html+="Total: "+e.total;
+    html+="</div>";
+
+    html+="<div class='tarjeta'>";
+    html+="Media: "+e.media.toFixed(2);
+    html+="</div>";
+
+    html+="<div class='tarjeta'>";
+    html+="PPA Máximo: "+e.max.toFixed(2);
+    html+="</div>";
+
+    html+="<div class='tarjeta'>";
+    html+="PPA Mínimo: "+e.min.toFixed(2);
+    html+="</div>";
+
+    html+="<div class='tarjeta'>";
+    html+="Desv. Estándar: "+e.stdev.toFixed(2);
+    html+="</div>";
+
+    document.getElementById(
+        "estadisticas"
+    ).innerHTML=html;
+
+}
+
+//============================
+// DIBUJAR BST
+//============================
+
+function dibujarArbol(){
+
+    let div=
+
+    document.getElementById(
+        "arbol"
+    );
+
+    div.innerHTML="";
+
+    recorrerVisual(
+
+        arbol.raiz,
+        div
+
+    );
+
+}
+
+function recorrerVisual(
+
+    nodo,
+    div
+
+){
+
+    if(nodo==null)
+        return;
+
+    let elemento=
+
+    document.createElement(
+        "div"
+    );
+
+    elemento.className="nodo";
+
+    elemento.innerHTML=
+
+    nodo.estudiante.codigo;
+
+    div.appendChild(
+        elemento
+    );
+
+    recorrerVisual(
+
+        nodo.izq,
+        div
+
+    );
+
+    recorrerVisual(
+
+        nodo.der,
+        div
+
+    );
+
+}
