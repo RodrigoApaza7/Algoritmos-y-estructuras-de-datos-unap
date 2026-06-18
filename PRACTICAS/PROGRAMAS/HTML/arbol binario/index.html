@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sistema de Gestión Académica BST</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="contenedor">
+
+    <header>
+
+        <h1>SISTEMA DE GESTIÓN ACADÉMICA</h1>
+
+        <p>Árbol Binario de Búsqueda (BST)</p>
+
+    </header>
+
+    <section class="panel">
+
+        <h2>Registrar Estudiante</h2>
+
+        <div class="formulario">
+
+            <input type="number" id="codigo" placeholder="Código UNAP">
+
+            <input type="text" id="nombre" placeholder="Nombre">
+
+            <input type="text" id="escuela" placeholder="Escuela Profesional">
+
+            <input type="number" step="0.1" id="ppa" placeholder="PPA">
+
+            <select id="estado">
+
+                <option value="REGULAR">Regular</option>
+                <option value="OBSERVADO">Observado</option>
+                <option value="RESERVADO">Reservado</option>
+                <option value="EGRESADO">Egresado</option>
+
+            </select>
+
+            <button onclick="insertarEstudiante()">
+
+                Agregar Estudiante
+
+            </button>
+
+        </div>
+
+    </section>
+
+    <section class="panel">
+
+        <h2>Buscar Estudiante</h2>
+
+        <input type="number" id="buscarCodigo">
+
+        <button onclick="buscarEstudiante()">
+
+            Buscar
+
+        </button>
+
+    </section>
+
+    <section class="panel">
+
+        <h2>Eliminar Estudiante</h2>
+
+        <input type="number" id="eliminarCodigo">
+
+        <button onclick="eliminarEstudiante()">
+
+            Eliminar
+
+        </button>
+
+    </section>
+
+    <section class="panel">
+
+        <h2>Consultas</h2>
+
+        <button onclick="mostrarInOrder()">
+
+            Listar InOrder
+
+        </button>
+
+        <button onclick="mostrarBFS()">
+
+            Listar BFS
+
+        </button>
+
+    </section>
+
+    <section class="panel">
+
+        <h2>Filtro por PPA</h2>
+
+        <input type="number" step="0.1" id="ppaMin" placeholder="PPA mínimo">
+
+        <input type="number" step="0.1" id="ppaMax" placeholder="PPA máximo">
+
+        <button onclick="filtrarPPA()">
+
+            Filtrar
+
+        </button>
+
+    </section>
+
+    <section class="panel">
+
+        <h2>Filtro por Estado</h2>
+
+        <select id="estadoFiltro">
+
+            <option value="REGULAR">Regular</option>
+            <option value="OBSERVADO">Observado</option>
+            <option value="RESERVADO">Reservado</option>
+            <option value="EGRESADO">Egresado</option>
+
+        </select>
+
+        <button onclick="filtrarEstado()">
+
+            Filtrar
+
+        </button>
+
+    </section>
+
+    <section class="panel">
+
+        <h2>Estadísticas</h2>
+
+        <button onclick="mostrarEstadisticas()">
+
+            Calcular
+
+        </button>
+
+        <div id="estadisticas">
+
+        </div>
+
+    </section>
+
+    <section class="panel">
+
+        <h2>Visualización del Árbol BST</h2>
+
+        <button onclick="dibujarArbol()">
+
+            Mostrar Árbol
+
+        </button>
+
+        <div id="arbol">
+
+        </div>
+
+    </section>
+
+    <section class="panel">
+
+        <h2>Resultados</h2>
+
+        <div id="resultado">
+
+        </div>
+
+    </section>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
