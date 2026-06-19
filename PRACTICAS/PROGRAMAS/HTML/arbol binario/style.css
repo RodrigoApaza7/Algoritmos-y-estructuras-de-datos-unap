@@ -273,3 +273,20 @@ button:hover{
     }
 
 }
+
+#arbol{
+    position: relative;
+    min-height: 300px;
+}
+
+#canvasArbol{
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+.nodo{
+    position: absolute;
+    z-index: 1;
+}

@@ -752,33 +752,78 @@ function construirNiveles(nodo, nivel, niveles){
     construirNiveles(nodo.der, nivel + 1, niveles);
 }
 
+function asignarPosiciones(nodo, nivel, x, offset, y, map){
+
+    if(!nodo) return;
+
+    let pos = {
+        x: x,
+        y: nivel * 80 + 20
+    };
+
+    map.set(nodo, pos);
+
+    asignarPosiciones(nodo.izq, nivel + 1, x - offset, offset / 2, y, map);
+    asignarPosiciones(nodo.der, nivel + 1, x + offset, offset / 2, y, map);
+}
+
+function dibujarLinea(ctx, padre, hijo){
+
+    ctx.beginPath();
+    ctx.moveTo(padre.x + 20, padre.y + 20);
+    ctx.lineTo(hijo.x + 20, hijo.y + 20);
+    ctx.stroke();
+}
+
 function dibujarArbol(){
 
-    let div = document.getElementById("arbol");
-    div.innerHTML = "";
+    const contenedor = document.getElementById("arbol");
+    const canvas = document.getElementById("canvasArbol");
+    const ctx = canvas.getContext("2d");
 
-    let niveles = [];
+    contenedor.innerHTML = "";
+    contenedor.appendChild(canvas);
 
-    construirNiveles(arbol.raiz, 0, niveles);
+    let posiciones = new Map();
 
-    niveles.forEach((nivel, i) => {
+    let width = contenedor.clientWidth;
+    canvas.width = width;
+    canvas.height = 500;
 
-        let fila = document.createElement("div");
-        fila.style.display = "flex";
-        fila.style.justifyContent = "center";
-        fila.style.marginBottom = "10px";
+    let nivel = 0;
 
-        nivel.forEach(nodo => {
+    asignarPosiciones(arbol.raiz, 0, width / 2, width / 4, nivel, posiciones);
 
-            let elemento = document.createElement("div");
-            elemento.className = "nodo";
-            elemento.innerHTML = nodo.estudiante.codigo;
+    // dibujar conexiones
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.strokeStyle = "#1565c0";
+    ctx.lineWidth = 2;
 
-            fila.appendChild(elemento);
+    posiciones.forEach((pos, nodo) => {
 
-        });
+        if(nodo.izq){
+            let hijo = posiciones.get(nodo.izq);
+            dibujarLinea(ctx, pos, hijo);
+        }
 
-        div.appendChild(fila);
+        if(nodo.der){
+            let hijo = posiciones.get(nodo.der);
+            dibujarLinea(ctx, pos, hijo);
+        }
+
+    });
+
+    // dibujar nodos
+    posiciones.forEach((pos, nodo) => {
+
+        let div = document.createElement("div");
+        div.className = "nodo";
+        div.style.left = pos.x + "px";
+        div.style.top = pos.y + "px";
+        div.innerHTML = nodo.estudiante.codigo;
+
+        contenedor.appendChild(div);
+
     });
 }
 
