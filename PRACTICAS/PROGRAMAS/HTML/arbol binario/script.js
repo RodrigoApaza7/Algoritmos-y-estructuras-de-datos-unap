@@ -739,23 +739,47 @@ function mostrarEstadisticas(){
 // DIBUJAR BST
 //============================
 
+function construirNiveles(nodo, nivel, niveles){
+
+    if(!nodo) return;
+
+    if(!niveles[nivel])
+        niveles[nivel] = [];
+
+    niveles[nivel].push(nodo);
+
+    construirNiveles(nodo.izq, nivel + 1, niveles);
+    construirNiveles(nodo.der, nivel + 1, niveles);
+}
+
 function dibujarArbol(){
 
-    let div=
+    let div = document.getElementById("arbol");
+    div.innerHTML = "";
 
-    document.getElementById(
-        "arbol"
-    );
+    let niveles = [];
 
-    div.innerHTML="";
+    construirNiveles(arbol.raiz, 0, niveles);
 
-    recorrerVisual(
+    niveles.forEach((nivel, i) => {
 
-        arbol.raiz,
-        div
+        let fila = document.createElement("div");
+        fila.style.display = "flex";
+        fila.style.justifyContent = "center";
+        fila.style.marginBottom = "10px";
 
-    );
+        nivel.forEach(nodo => {
 
+            let elemento = document.createElement("div");
+            elemento.className = "nodo";
+            elemento.innerHTML = nodo.estudiante.codigo;
+
+            fila.appendChild(elemento);
+
+        });
+
+        div.appendChild(fila);
+    });
 }
 
 function recorrerVisual(
