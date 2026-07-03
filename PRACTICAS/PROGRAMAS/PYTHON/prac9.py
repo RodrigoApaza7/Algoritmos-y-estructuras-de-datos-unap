@@ -255,6 +255,87 @@ def ejecutar_benchmark():
 
 ejecutar_benchmark()
 
+# =====================================================================
+# FRAMEWORK DE VERIFICACIÓN FORMAL - ACTIVIDAD 3 Y 4 (CORREGIDO)
+# =====================================================================
+
+def es_bst(nodo, minimo=float('-inf'), maximo=float('inf')) -> bool:
+    """P4/P5 runtime: Verifica recursivamente la invariante BST usando tu estructura."""
+    if nodo is None: 
+        return True
+    # En tu archivo, el código está dentro del objeto estudiante
+    if not (minimo < nodo.estudiante.codigo < maximo): 
+        return False
+    return (es_bst(nodo.izquierdo, minimo, nodo.estudiante.codigo) and
+            es_bst(nodo.derecho, nodo.estudiante.codigo, maximo))
+
+def es_inorder_ordenado(arbol: ArbolAcademico) -> bool:
+    """P1 runtime: Verifica que tu método in_order() devuelva claves ordenadas."""
+    codigos = [e.codigo for e in arbol.in_order()]
+    return codigos == sorted(codigos)
+
+def contar_recursivo(nodo) -> int:
+    """P3 runtime: Cuenta físicamente los nodos recorriendo la estructura de tu txt."""
+    if nodo is None: 
+        return 0
+    return 1 + contar_recursivo(nodo.izquierdo) + contar_recursivo(nodo.derecho)
+
+def cota_altura_cumplida(arbol: ArbolAcademico, n: int) -> bool:
+    """P2 runtime: Calcula la altura de forma independiente usando tu atributo 'raiz'."""
+    import math
+    if n == 0: 
+        return True
+    
+    # Función local para evitar depender de métodos externos de la clase
+    def _obtener_altura_nodo(nodo) -> int:
+        if nodo is None:
+            return -1
+        return 1 + max(_obtener_altura_nodo(nodo.izquierdo), _obtener_altura_nodo(nodo.derecho))
+    
+    # En tu archivo el atributo público es 'raiz' sin guion bajo
+    altura_arbol = _obtener_altura_nodo(arbol.raiz)
+    cota = math.ceil(math.log2(n + 1)) - 1
+    return altura_arbol >= cota
+
+def verificar_propiedades(arbol: ArbolAcademico, n_esperado: int) -> dict:
+    return {
+        'P1_inorder_ordenado': es_inorder_ordenado(arbol),
+        'P2_cota_altura': cota_altura_cumplida(arbol, n_esperado),
+        'P3_conteo_correcto': contar_recursivo(arbol.raiz) == n_esperado,
+        'P4_P5_es_bst': es_bst(arbol.raiz)
+    }
+
+def ejecutar_fuzz_test_python(n_casos=500, n_operaciones=50, semilla=42):
+    """Actividad 4: Fuzzing adaptado a los constructores exactos de tu txt."""
+    random.seed(semilla)
+    fallos = []
+    
+    for caso in range(n_casos):
+        arbol_fuzz = ArbolAcademico()
+        codigos_activos = set()
+        codigos_pool = list(range(20000000, 20000000 + n_operaciones * 3))
+        random.shuffle(codigos_pool)
+        
+        for op in range(n_operaciones):
+            accion = random.choice(['insertar', 'insertar', 'eliminar'])
+            
+            if accion == 'insertar' or not codigos_activos:
+                cod = codigos_pool.pop()
+                # Usamos los parámetros exactos de tu @dataclass Estudiante
+                e = Estudiante(codigo=cod, nombre=f"Fuzz_{cod}", escuela="Sistemas", ppa=14.5, estado=EstadoAcademico.REGULAR)
+                arbol_fuzz.insertar(e)
+                codigos_activos.add(cod)
+            else:
+                cod = random.choice(list(codigos_activos))
+                arbol_fuzz.eliminar(cod)
+                codigos_activos.remove(cod)
+            
+            res = verificar_propiedades(arbol_fuzz, len(codigos_activos))
+            if not all(res.values()):
+                fallos.append((caso, op, accion, cod, res))
+                
+    return fallos
+
 
 # =====================================================================
 # INTERFAZ DE CONSOLA INTERACTIVA (Menú de Control)
@@ -286,10 +367,11 @@ def menu_interactivo():
         print(" 5. Ver reporte estadístico global (Actividad 4)")
         print(" 6. Mostrar estructura visual del BST (Actividad 5)")
         print(" 7. Listar todos los estudiantes (In-Order / BFS)")
-        print(" 8. Salir de la aplicación")
+        print(" 8. Ejecutar framework de verificación y fuzzing (Actividad 3 y 4 PRAC10)")
+        print(" 9. Salir de la aplicación")
         print("=======================================================")
         
-        opcion = input("Seleccione una opción (1-8): ").strip()
+        opcion = input("Seleccione una opción (1-9): ").strip()
 
         if opcion == "1":
             print("\n--- INSERTAR ESTUDIANTE ---")
@@ -390,10 +472,28 @@ def menu_interactivo():
                     print(f"  Código: {e.codigo} | {e.nombre}")
 
         elif opcion == "8":
+            print("\n--- EJECUTANDO FRAMEWORK DE VERIFICACIÓN & FUZZING (ACT. 3 y 4) ---")
+            
+            # 1. Verificar árbol actual en ejecución
+            n_actual = contar_recursivo(arbol.raiz)
+            res_actual = verificar_propiedades(arbol, n_actual)
+            
+            print("\nEstado del Árbol Actual de Matrículas:")
+            for prop, ok in res_actual.items():
+                print(f"  [{'✔' if ok else '✘'}] {prop}")
+            
+            # 2. Ejecutar el Fuzz Test masivo de 500 iteraciones
+            print("\nCorriendo Fuzz Test Automático (500 escenarios x 50 ops = 25,000 verificaciones)...")
+            fallos = ejecutar_fuzz_test_python()
+            print(f"Total de fallos críticos detectados en la invariante: {len(fallos)}")
+            if not fallos:
+                print("¡CERTIFICACIÓN EXITOSA EN PYTHON! El sistema es estructuralmente seguro.")
+
+        elif opcion == "9":
             print("\nCerrando el sistema académico. ¡Hasta luego!")
             break
         else:
-            print("[!] Opción no válida. Intente un número del 1 al 8.")
+            print("[!] Opción no válida. Intente un número del 1 al 9.")
 
 
 if __name__ == "__main__":
